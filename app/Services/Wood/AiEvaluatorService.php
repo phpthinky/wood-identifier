@@ -35,26 +35,33 @@ use RuntimeException;
 class AiEvaluatorService
 {
     /**
-     * Provider → Prism enum map.
-     * Add new providers here as Prism supports them.
+     * Provider key → Prism Provider enum.
+     * PHP does not allow enum values in class constants (non-scalar),
+     * so this is a method instead of const.
      */
-    private const PROVIDER_MAP = [
-        'anthropic' => Provider::Anthropic,
-        'claude'    => Provider::Anthropic, // alias
-        'gemini'    => Provider::Gemini,
-        'google'    => Provider::Gemini,    // alias
-    ];
+    private function providerMap(): array
+    {
+        return [
+            'anthropic' => Provider::Anthropic,
+            'claude'    => Provider::Anthropic, // alias
+            'gemini'    => Provider::Gemini,
+            'google'    => Provider::Gemini,    // alias
+        ];
+    }
 
     /**
-     * Default models per provider.
-     * Overridden by WOOD_AI_MODEL in .env.
+     * Default vision model per provider.
+     * Overridden by WOOD_AI_MODEL / WOOD_AI_FALLBACK_MODEL in .env.
      */
-    private const DEFAULT_MODELS = [
-        'anthropic' => 'claude-opus-4-6',
-        'claude'    => 'claude-opus-4-6',
-        'gemini'    => 'gemini-2.0-flash',
-        'google'    => 'gemini-2.0-flash',
-    ];
+    private function defaultModels(): array
+    {
+        return [
+            'anthropic' => 'claude-opus-4-6',
+            'claude'    => 'claude-opus-4-6',
+            'gemini'    => 'gemini-2.0-flash',
+            'google'    => 'gemini-2.0-flash',
+        ];
+    }
 
     /**
      * Ask the configured AI Vision model to identify the wood species.
@@ -129,7 +136,7 @@ class AiEvaluatorService
 
         // Fallback (only if configured and different from primary)
         $fallback = strtolower(config('wood.ai_fallback_provider', ''));
-        if ($fallback && $fallback !== $primary && isset(self::PROVIDER_MAP[$fallback])) {
+        if ($fallback && $fallback !== $primary && isset($this->providerMap()[$fallback])) {
             $chain[] = $this->resolveProviderTuple($fallback, config('wood.ai_fallback_model'));
         }
 
@@ -141,8 +148,9 @@ class AiEvaluatorService
      */
     private function resolveProviderTuple(string $key, ?string $modelOverride): array
     {
-        $prismProvider = self::PROVIDER_MAP[$key] ?? Provider::Anthropic;
-        $model         = $modelOverride ?: (self::DEFAULT_MODELS[$key] ?? 'claude-opus-4-6');
+        $prismProvider = $this->providerMap()[$key] ?? Provider::Anthropic;
+        $defaults      = $this->defaultModels();
+        $model         = ($modelOverride ?: null) ?: ($defaults[$key] ?? 'claude-opus-4-6');
 
         return [$key, $model, $prismProvider];
     }

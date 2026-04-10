@@ -31,20 +31,52 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | AI Vision Provider
+    | AI Vision Provider (Primary)
     |--------------------------------------------------------------------------
     | Which Prism provider to use for the AI fallback.
-    | Options: anthropic (Claude), google (Gemini)
+    |
+    | Options:
+    |   anthropic  → Claude Vision (ANTHROPIC_API_KEY required)
+    |   gemini     → Gemini Vision (GEMINI_API_KEY required)
+    |
+    | Set whichever API key you have. The system will skip providers
+    | with no key configured and try the fallback automatically.
     */
     'ai_provider' => env('WOOD_AI_PROVIDER', 'anthropic'),
 
     /*
     |--------------------------------------------------------------------------
-    | AI Vision Model
+    | AI Vision Model (Primary)
     |--------------------------------------------------------------------------
-    | The specific model to use for vision identification.
+    | The specific model for the primary provider.
+    | Leave blank to use the provider default.
+    |
+    |   Anthropic: claude-opus-4-6, claude-sonnet-4-6
+    |   Gemini:    gemini-2.0-flash, gemini-1.5-pro
     */
-    'ai_model' => env('WOOD_AI_MODEL', 'claude-opus-4-6'),
+    'ai_model' => env('WOOD_AI_MODEL', ''),
+
+    /*
+    |--------------------------------------------------------------------------
+    | AI Vision Fallback Provider
+    |--------------------------------------------------------------------------
+    | If the primary provider has no API key or fails, the system
+    | automatically tries this provider instead.
+    |
+    | Example: primary=anthropic, fallback=gemini
+    |   → Use Claude if key exists, otherwise use Gemini.
+    |
+    | Leave blank to disable fallback (single provider mode).
+    */
+    'ai_fallback_provider' => env('WOOD_AI_FALLBACK_PROVIDER', 'gemini'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | AI Vision Fallback Model
+    |--------------------------------------------------------------------------
+    | Model for the fallback provider. Leave blank to use provider default.
+    */
+    'ai_fallback_model' => env('WOOD_AI_FALLBACK_MODEL', ''),
 
     /*
     |--------------------------------------------------------------------------

@@ -132,10 +132,10 @@ class WoodBrainService
             recommendation: $aiResult['recommendation'],
             options: $options,
             extra: [
-                'ai_provider'     => $aiResult['ai_provider'],
-                'ai_forensic_flag' => $aiResult['forensic_flag'],
-                'ai_forensic_reason' => $aiResult['forensic_reason'],
-                'matches_opencv'  => $aiResult['matches_opencv'] ?? true,
+                'ai_provider'        => $aiResult['ai_provider'] ?? null,
+                'ai_forensic_flag'   => $aiResult['forensic_flag'] ?? false,
+                'ai_forensic_reason' => $aiResult['forensic_reason'] ?? null,
+                'matches_opencv'     => $aiResult['matches_opencv'] ?? true,
             ]
         );
 
@@ -262,13 +262,13 @@ class WoodBrainService
             'forensic_reason'  => $fingerprint['forensic_reason'] ?? null,
 
             // OpenCV features (educational — explain WHY this is the result)
-            'wood_type'        => $fingerprint['wood_type'],
-            'grain_pattern'    => $fingerprint['grain_pattern'],
-            'pore_type'        => $fingerprint['pore_type'],
-            'color_hex'        => $fingerprint['color_hex'],
-            'surface_texture'  => $fingerprint['surface_texture'],
-            'photo_quality'    => $fingerprint['photo_quality'],
-            'photo_advice'     => $fingerprint['photo_advice'],
+            'wood_type'        => $fingerprint['wood_type'] ?? null,
+            'grain_pattern'    => $fingerprint['grain_pattern'] ?? null,
+            'pore_type'        => $fingerprint['pore_type'] ?? null,
+            'color_hex'        => $fingerprint['color_hex'] ?? null,
+            'surface_texture'  => $fingerprint['surface_texture'] ?? null,
+            'photo_quality'    => $fingerprint['photo_quality'] ?? null,
+            'photo_advice'     => $fingerprint['photo_advice'] ?? null,
 
             // CIEDE2000 local result (always available for transparency)
             'ciede2000_species'  => $fingerprint['ciede2000_species'] ?? null,
@@ -306,8 +306,8 @@ class WoodBrainService
             'final_match'         => $result['species_id'],
             'confidence_score'    => $result['confidence_score'],
             'confidence_level'    => $result['confidence_level'],
-            'forensic_flag'       => $result['forensic_flag'],
-            'forensic_reason'     => $result['forensic_reason'],
+            'forensic_flag'       => $result['forensic_flag'] ?? false,
+            'forensic_reason'     => $result['forensic_reason'] ?? null,
             'recommendation'      => $result['recommendation'],
             'location_lat'        => $options['lat'] ?? null,
             'location_lng'        => $options['lng'] ?? null,

@@ -283,21 +283,36 @@
 
     {{-- Upload form --}}
     <div class="card" style="margin-bottom:1.25rem">
-        <div class="card-header"><h2>⬆ Upload Reference Image</h2></div>
+        <div class="card-header">
+            <h2>⬆ Upload Reference Image</h2>
+            <span style="font-size:0.75rem; color:var(--muted); background:rgba(212,168,98,.08); border:1px solid var(--border2); border-radius:5px; padding:0.2rem 0.6rem">
+                Admin only — strict dimensions required
+            </span>
+        </div>
         <div class="card-body">
+
+            {{-- Dimension requirement notice --}}
+            <div style="background:rgba(251,191,36,.07); border:1px solid rgba(251,191,36,.25); border-radius:7px; padding:0.65rem 1rem; margin-bottom:1.1rem; font-size:0.82rem; color:#fbbf24;">
+                <strong>📐 Required dimensions:</strong> exactly <code style="background:rgba(0,0,0,.3); padding:0.1rem 0.35rem; border-radius:3px">1200 × 1200 px</code> or <code style="background:rgba(0,0,0,.3); padding:0.1rem 0.35rem; border-radius:3px">1600 × 1600 px</code> — square images only.
+                Images of any other size will be rejected. Use a photo editor to crop and resize before uploading.
+            </div>
+
             <form method="POST" action="{{ route('admin.species.images.store', $species) }}"
-                  enctype="multipart/form-data">
+                  enctype="multipart/form-data" id="imgUploadForm">
                 @csrf
                 <div class="form-row">
                     <div class="form-group">
                         <label class="form-label">Image File *</label>
-                        <input type="file" name="image" class="form-control"
+                        <input type="file" name="image" id="refImageInput" class="form-control"
                                accept="image/jpeg,image/png,image/webp" required
                                onchange="previewRef(this)">
-                        <div class="form-hint">JPEG, PNG, WebP — max 8 MB</div>
+                        <div class="form-hint">JPEG, PNG, WebP — max 8 MB — must be 1200×1200 or 1600×1600 px</div>
+                        {{-- Client-side dimension feedback --}}
+                        <div id="dimFeedback" style="margin-top:0.4rem; font-size:0.8rem; display:none"></div>
                     </div>
-                    <div class="form-group" style="display:flex; align-items:center">
-                        <img id="refPreview" style="max-height:80px; border-radius:6px; display:none; border:1px solid var(--border)">
+                    <div class="form-group" style="display:flex; align-items:center; gap:0.75rem; flex-wrap:wrap">
+                        <img id="refPreview" style="max-height:90px; border-radius:6px; display:none; border:1px solid var(--border)">
+                        <div id="dimBadge" style="display:none"></div>
                     </div>
                 </div>
                 <div class="form-row">
@@ -319,7 +334,12 @@
                     <input type="checkbox" name="is_primary" value="1" style="accent-color:var(--gold); width:15px; height:15px">
                     Set as primary image for this cut type
                 </label>
-                <button type="submit" class="btn btn-primary">Upload Image</button>
+                <button type="submit" class="btn btn-primary" id="imgSubmitBtn" disabled style="opacity:0.4">
+                    Upload Image
+                </button>
+                <span style="font-size:0.75rem; color:var(--muted); margin-left:0.5rem">
+                    Button enables after dimension check passes
+                </span>
             </form>
         </div>
     </div>
@@ -391,11 +411,44 @@ function syncPicker(input) {
     }
 }
 function previewRef(input) {
-    const img = document.getElementById('refPreview');
-    if (input.files && input.files[0]) {
-        img.src = URL.createObjectURL(input.files[0]);
-        img.style.display = '';
-    }
+    const preview  = document.getElementById('refPreview');
+    const feedback = document.getElementById('dimFeedback');
+    const badge    = document.getElementById('dimBadge');
+    const submit   = document.getElementById('imgSubmitBtn');
+    const allowed  = [[1200,1200],[1600,1600]];
+
+    if (!input.files || !input.files[0]) return;
+
+    const url = URL.createObjectURL(input.files[0]);
+    preview.src = url;
+    preview.style.display = '';
+
+    const tmpImg = new Image();
+    tmpImg.onload = function () {
+        const w = tmpImg.naturalWidth;
+        const h = tmpImg.naturalHeight;
+        const ok = allowed.some(([aw, ah]) => w === aw && h === ah);
+
+        feedback.style.display = '';
+        badge.style.display    = '';
+
+        if (ok) {
+            feedback.innerHTML = `✓ Dimensions accepted: <strong>${w}×${h}px</strong>`;
+            feedback.style.color = '#4ade80';
+            badge.innerHTML = `<span style="background:rgba(74,222,128,.15);border:1px solid rgba(74,222,128,.4);color:#4ade80;border-radius:5px;padding:0.25rem 0.6rem;font-size:0.78rem;font-weight:600">${w}×${h}</span>`;
+            submit.disabled = false;
+            submit.style.opacity = '';
+        } else {
+            feedback.innerHTML = `✗ Wrong dimensions: <strong>${w}×${h}px</strong>. Must be 1200×1200 or 1600×1600.`;
+            feedback.style.color = '#f87171';
+            badge.innerHTML = `<span style="background:rgba(224,85,85,.15);border:1px solid rgba(224,85,85,.4);color:#f87171;border-radius:5px;padding:0.25rem 0.6rem;font-size:0.78rem;font-weight:600">${w}×${h} ✗</span>`;
+            submit.disabled = true;
+            submit.style.opacity = '0.4';
+        }
+
+        URL.revokeObjectURL(url);
+    };
+    tmpImg.src = url;
 }
 </script>
 @endpush

@@ -8,6 +8,7 @@ use App\Models\WoodGrainProfile;
 use App\Models\WoodReferenceImage;
 use App\Models\WoodSmellProfile;
 use App\Models\WoodSpecies;
+use App\Rules\AllowedImageDimension;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -196,7 +197,7 @@ class SpeciesController extends Controller
     public function storeImage(Request $request, WoodSpecies $species)
     {
         $request->validate([
-            'image'      => 'required|file|image|mimes:jpeg,png,webp|max:8192',
+            'image'      => ['required', 'file', 'image', 'mimes:jpeg,png,webp', 'max:8192', new AllowedImageDimension],
             'cut_type'   => 'required|in:cross_section,side_cut,flat_cut',
             'label'      => 'nullable|string|max:100',
             'is_primary' => 'boolean',
